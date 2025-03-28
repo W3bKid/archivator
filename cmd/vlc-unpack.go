@@ -10,17 +10,15 @@ import (
 	"strings"
 )
 
-var vlcCmd = &cobra.Command{
-	Use:   "vlc",
+var vlcUnpackCmd = &cobra.Command{
+	Use:   "unpack",
 	Short: "Pack file using variable-length code",
-	Run:   pack,
+	Run:   unpack,
 }
 
-const vlcPackedExtension = ".yu"
+const vlcUnpackedExtension = ".txt"
 
-var ErrEmptyPath = "please specify a file"
-
-func pack(_ *cobra.Command, args []string) {
+func unpack(_ *cobra.Command, args []string) {
 	if len(args) < 1 {
 		handleError(errors.New(ErrEmptyPath))
 	}
@@ -28,9 +26,11 @@ func pack(_ *cobra.Command, args []string) {
 	filePath := args[0]
 
 	r, err := os.Open(filePath)
+
 	if err != nil {
 		handleError(err)
 	}
+
 	defer func() {
 		err := r.Close()
 		if err != nil {
@@ -43,18 +43,18 @@ func pack(_ *cobra.Command, args []string) {
 		handleError(err)
 	}
 
-	packed := vlc.Encode(string(data))
-	if err := os.WriteFile(packedFileName(filePath), []byte(packed), 0644); err != nil {
+	packed := vlc.Decode(data)
+	if err := os.WriteFile(unpackedFileName(filePath), []byte(packed), 0644); err != nil {
 		handleError(err)
 	}
 }
 
-func packedFileName(path string) string {
+func unpackedFileName(path string) string {
 	fileName := filepath.Base(path)
 
-	return strings.TrimSuffix(fileName, filepath.Ext(fileName)) + vlcPackedExtension
+	return strings.TrimSuffix(fileName, filepath.Ext(fileName)) + vlcUnpackedExtension
 }
 
 func init() {
-	packCmd.AddCommand(vlcCmd)
+	rootCmd.AddCommand(vlcUnpackCmd)
 }
